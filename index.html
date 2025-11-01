@@ -1,201 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>S0NGR3ADYN0W - AI Song Generator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>S0NGR3ADYN0W</title>
   <style>
     body {
       margin: 0;
-      font-family: "Poppins", sans-serif;
-      background-color: #0a0a0a;
-      color: #f5f5f5;
+      font-family: 'Poppins', sans-serif;
+      background-color: #0d0d0d;
+      color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
     }
     header {
-      background: linear-gradient(90deg, #111, #222);
-      width: 100%;
-      padding: 20px 0;
+      padding: 20px;
       text-align: center;
-      box-shadow: 0 0 15px rgba(255,255,255,0.05);
-    }
-    header h1 {
       font-size: 2em;
-      letter-spacing: 2px;
-      color: #fff;
+      background: #111;
+      width: 100%;
+      border-bottom: 1px solid #222;
     }
     .container {
       width: 90%;
       max-width: 800px;
-      background: #141414;
-      border-radius: 15px;
-      padding: 30px;
-      margin-top: 40px;
-      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+      margin-top: 30px;
+      background: #1a1a1a;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
     }
-    label {
+    label, select, input, textarea, button {
       display: block;
-      margin-top: 15px;
-      font-weight: 500;
-      color: #ddd;
-    }
-    input, select, textarea {
       width: 100%;
-      background: #1f1f1f;
-      border: 1px solid #333;
-      border-radius: 10px;
-      padding: 10px;
-      color: #fff;
+      margin-top: 12px;
       font-size: 1em;
-      margin-top: 8px;
-      resize: none;
-      transition: 0.3s;
+      border-radius: 8px;
     }
-    input:focus, textarea:focus, select:focus {
-      outline: none;
-      border-color: #888;
+    select, input, textarea {
+      background: #2a2a2a;
+      border: 1px solid #444;
+      color: #fff;
+      padding: 10px;
     }
     button {
-      background: #333;
-      color: white;
+      background: #444;
       border: none;
-      padding: 12px 25px;
-      border-radius: 10px;
-      margin-top: 25px;
-      font-size: 1em;
+      padding: 12px;
       cursor: pointer;
       transition: 0.3s;
     }
     button:hover {
-      background: #555;
-      transform: translateY(-2px);
+      background: #666;
     }
     #results {
       margin-top: 30px;
     }
-    .song-card {
-      background: #1c1c1c;
-      border-radius: 10px;
-      padding: 15px;
-      margin-top: 15px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.4);
-    }
-    .song-card audio {
-      width: 100%;
+    .song {
+      background: #222;
+      padding: 10px;
+      border-radius: 8px;
       margin-top: 10px;
     }
-    footer {
-      margin-top: auto;
-      padding: 15px;
-      color: #666;
-      text-align: center;
-      font-size: 0.9em;
+    audio {
+      width: 100%;
+      margin-top: 8px;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>S0NGR3ADYN0W 🎵</h1>
-    <p style="color:#888;">AI-powered song generation — professional style, up to 5 tracks</p>
-  </header>
-
+  <header>🎵 S0NGR3ADYN0W</header>
   <div class="container">
-    <h2 style="color:#ccc;">Generate Songs</h2>
-
-    <label for="count">Number of Songs (1–5):</label>
-    <input type="number" id="count" min="1" max="5" value="1">
-
-    <label for="mode">Mode:</label>
+    <label for="mode">Mode</label>
     <select id="mode">
-      <option value="auto">Auto Mode (AI chooses style)</option>
-      <option value="custom">Custom Mode (you supply lyrics + style)</option>
+      <option value="auto">Auto (AI decides)</option>
+      <option value="mood">Mood</option>
+      <option value="custom">Custom (Write your lyrics)</option>
     </select>
 
-    <div id="customFields" style="display:none;">
-      <label for="genre">Genre (optional):</label>
-      <input type="text" id="genre" placeholder="e.g. Pop, EDM, Rock">
-
-      <label for="mood">Mood (optional):</label>
-      <input type="text" id="mood" placeholder="e.g. Energetic, Chill, Dark">
-
-      <label for="lyrics">Enter your lyrics:</label>
-      <textarea id="lyrics" rows="6" placeholder="Type your song lyrics here..."></textarea>
+    <div id="moodBox" style="display:none;">
+      <label for="mood">Mood</label>
+      <select id="mood">
+        <option value="happy">Happy</option>
+        <option value="sad">Sad</option>
+        <option value="energetic">Energetic</option>
+        <option value="chill">Chill</option>
+      </select>
     </div>
 
-    <button id="generateBtn">Generate Songs</button>
+    <div id="lyricsBox" style="display:none;">
+      <label for="lyrics">Your Lyrics</label>
+      <textarea id="lyrics" rows="5" placeholder="Write your lyrics here..."></textarea>
+    </div>
+
+    <label for="amount">Number of Songs (1–5)</label>
+    <input type="number" id="amount" min="1" max="5" value="1">
+
+    <button id="generate">Generate Songs</button>
 
     <div id="results"></div>
   </div>
 
-  <footer>© 2025 S0NGR3ADYN0W — Powered by Loudly AI</footer>
-
   <script>
-    const modeSelect = document.getElementById('mode');
-    const customFields = document.getElementById('customFields');
-    const generateBtn = document.getElementById('generateBtn');
+    const modeEl = document.getElementById('mode');
+    const moodBox = document.getElementById('moodBox');
+    const lyricsBox = document.getElementById('lyricsBox');
     const results = document.getElementById('results');
 
-    modeSelect.addEventListener('change', () => {
-      if (modeSelect.value === 'custom') {
-        customFields.style.display = 'block';
-      } else {
-        customFields.style.display = 'none';
-      }
+    modeEl.addEventListener('change', () => {
+      const mode = modeEl.value;
+      moodBox.style.display = mode === 'mood' ? 'block' : 'none';
+      lyricsBox.style.display = mode === 'custom' ? 'block' : 'none';
     });
 
-    generateBtn.addEventListener('click', async () => {
-      const count = parseInt(document.getElementById('count').value);
-      if (isNaN(count) || count < 1 || count > 5) {
-        alert("Please select between 1 and 5 songs.");
+    document.getElementById('generate').addEventListener('click', async () => {
+      const mode = modeEl.value;
+      const amount = document.getElementById('amount').value;
+      const mood = document.getElementById('mood').value;
+      const lyrics = document.getElementById('lyrics').value;
+
+      results.innerHTML = '<p>🎶 Generating songs... please wait.</p>';
+
+      const response = await fetch('/api/song', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode, amount, mood, lyrics })
+      });
+
+      if (!response.ok) {
+        results.innerHTML = '<p style="color:red;">❌ Error generating songs.</p>';
         return;
       }
 
-      const mode = modeSelect.value;
-      const genre = document.getElementById('genre').value.trim();
-      const mood = document.getElementById('mood').value.trim();
-      const lyrics = mode === 'custom' ? document.getElementById('lyrics').value.trim() : "";
+      const data = await response.json();
+      results.innerHTML = '';
 
-      if (mode === 'custom' && lyrics === "") {
-        alert("Please enter your lyrics for custom mode.");
-        return;
-      }
-
-      generateBtn.disabled = true;
-      generateBtn.textContent = "Generating...";
-
-      results.innerHTML = `<p style="color:#888;">AI is composing your songs 🎶</p>`;
-
-      try {
-        const res = await fetch('/api/song', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ count, mode, genre, mood, lyrics })
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Generation failed");
-
-        results.innerHTML = '';
-        data.songs.forEach((song, i) => {
-          const card = document.createElement('div');
-          card.className = 'song-card';
-          card.innerHTML = `
-            <strong>Song ${i+1}</strong><br>
-            <audio controls src="${song.url}"></audio><br>
-            <a href="${song.url}" download="S0NGR3ADYN0W_${i+1}.mp3"><button>Download</button></a>
-          `;
-          results.appendChild(card);
-        });
-
-      } catch (err) {
-        results.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
-      } finally {
-        generateBtn.disabled = false;
-        generateBtn.textContent = "Generate Songs";
-      }
+      data.songs.forEach((song, i) => {
+        const div = document.createElement('div');
+        div.className = 'song';
+        div.innerHTML = `
+          <h3>Song ${i + 1}</h3>
+          <audio controls src="${song.url}"></audio>
+          <a href="${song.url}" download="song_${i + 1}.mp3">⬇️ Download</a>
+        `;
+        results.appendChild(div);
+      });
     });
   </script>
 </body>
