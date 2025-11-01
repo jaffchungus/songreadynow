@@ -1,57 +1,50 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST allowed' });
-  }
-
-  const { count, mode, genre, mood, lyrics } = req.body;
-  const apiKey = process.env.LOUDLY_API_KEY;
-
-  if (!apiKey) {
-    return res.status(500).json({ error: 'LOUDLY_API_KEY not set in environment' });
-  }
-
   try {
-    const songs = [];
+    if (req.method !== 'POST')
+      return res.status(405).json({ error: 'Method not allowed' });
 
-    for (let i = 0; i < count; i++) {
-      let promptParts = [];
+    const { mode, amount, mood, lyrics } = req.body;
+    const apiKey = process.env.LOUDLY_API_KEY;
 
-      if (mode === 'custom') {
-        promptParts.push(`Lyrics: ${lyrics}`);
-        if (genre) promptParts.push(`Genre: ${genre}`);
-        if (mood) promptParts.push(`Mood: ${mood}`);
-        promptParts.push(`Create a song based on the above lyrics.`);
-      } else {
-        // Auto mode: minimal user input, full AI chooses
-        promptParts.push(`Generate a professional original song. No lyrics provided.`);
-        // you could optionally add random mood/genre here if you like
-      }
+    if (!apiKey)
+      return res.status(500).json({ error: 'LOUDLY_API_KEY not set' });
 
-      const prompt = promptParts.join(' | ');
-
-      const response = await fetch("https://api.loudly.com/v1/song/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({ prompt })
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        console.error("Loudly API error", data);
-        throw new Error(data.error || "Loudly API failed");
-      }
-
-      songs.push({
-        url: data.audio_url || data.download_url || data.url
-      });
+    const prompts = [];
+    for (let i = 0; i < amount; i++) {
+      let prompt = 'Create a high-quality AI-generated song.';
+      if (mode === 'mood') prompt += ` Mood: ${mood}.`;
+      if (mode === 'custom') prompt += ` Lyrics: ${lyrics}`;
+      prompts.push(prompt);
     }
 
-    res.status(200).json({ songs });
+    // Simulate Loudly API (you can replace with real endpoint)
+    const songs = [];
+    for (const p of prompts) {
+      const r = await fetch('https://api.loudly.com/v1/generate-song', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text_prompt: p,
+          duration: 30
+        })
+      });
+
+      if (!r.ok) {
+        const text = await r.text();
+        console.error('LOUDLY API error:', text);
+        throw new Error(text);
+      }
+
+      const result = await r.json();
+      songs.push({ url: result.audio_url });
+    }
+
+    return res.status(200).json({ songs });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message || "Generation failed" });
+    console.error('Server error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }
