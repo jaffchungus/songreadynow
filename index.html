@@ -15,7 +15,6 @@
       align-items: center;
       min-height: 100vh;
     }
-
     header {
       background: linear-gradient(90deg, #111, #222);
       width: 100%;
@@ -23,13 +22,7 @@
       text-align: center;
       box-shadow: 0 0 15px rgba(255,255,255,0.05);
     }
-
-    header h1 {
-      font-size: 2em;
-      letter-spacing: 2px;
-      color: #fff;
-    }
-
+    header h1 { font-size: 2em; letter-spacing: 2px; color: #fff; }
     .container {
       width: 90%;
       max-width: 800px;
@@ -39,20 +32,7 @@
       margin-top: 40px;
       box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
     }
-
-    .section-title {
-      font-size: 1.3em;
-      margin-bottom: 10px;
-      color: #ccc;
-    }
-
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: 500;
-      color: #ddd;
-    }
-
+    label { display: block; margin-top: 15px; color: #ccc; }
     input, select, textarea {
       width: 100%;
       background: #1f1f1f;
@@ -60,17 +40,9 @@
       border-radius: 10px;
       padding: 10px;
       color: #fff;
-      font-size: 1em;
       margin-top: 8px;
-      resize: none;
-      transition: 0.3s;
+      font-size: 1em;
     }
-
-    input:focus, textarea:focus, select:focus {
-      outline: none;
-      border-color: #888;
-    }
-
     button {
       background: #333;
       color: white;
@@ -82,65 +54,35 @@
       cursor: pointer;
       transition: 0.3s;
     }
-
-    button:hover {
-      background: #555;
-      transform: translateY(-2px);
-    }
-
-    #results {
-      margin-top: 30px;
-    }
-
+    button:hover { background: #555; transform: translateY(-2px); }
     .song-card {
       background: #1c1c1c;
       border-radius: 10px;
       padding: 15px;
       margin-top: 15px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.4);
     }
-
-    .song-card audio {
-      width: 100%;
-      margin-top: 10px;
-    }
-
-    footer {
-      margin-top: auto;
-      padding: 15px;
-      color: #666;
-      text-align: center;
-      font-size: 0.9em;
-    }
+    audio { width: 100%; margin-top: 10px; }
   </style>
 </head>
 <body>
   <header>
     <h1>S0NGR3ADYN0W 🎵</h1>
-    <p style="color:#888;">AI-powered song generation — create up to 5 tracks instantly</p>
+    <p style="color:#888;">Generate professional AI music instantly</p>
   </header>
 
   <div class="container">
-    <h2 class="section-title">Generate Songs</h2>
-
-    <label for="count">Number of Songs (1–5):</label>
+    <label>Number of Songs (1–5):</label>
     <input type="number" id="count" min="1" max="5" value="1">
 
-    <label for="mode">Mode:</label>
+    <label>Mode:</label>
     <select id="mode">
-      <option value="auto">Auto Mode (AI chooses style)</option>
-      <option value="custom">Custom Mode (you choose mood & genre)</option>
+      <option value="auto">Auto Mode (instrumental)</option>
+      <option value="custom">Custom Mode (use your own lyrics)</option>
     </select>
 
     <div id="customFields" style="display:none;">
-      <label for="mood">Mood:</label>
-      <input type="text" id="mood" placeholder="e.g. Chill, Energetic, Dark, Happy">
-
-      <label for="genre">Genre:</label>
-      <input type="text" id="genre" placeholder="e.g. Pop, EDM, Hip Hop, Rock">
-
-      <label for="prompt">Describe your song:</label>
-      <textarea id="prompt" rows="3" placeholder="e.g. A chill electronic song for nighttime coding..."></textarea>
+      <label for="lyrics">Enter your lyrics:</label>
+      <textarea id="lyrics" rows="6" placeholder="Type your song lyrics here..."></textarea>
     </div>
 
     <button id="generateBtn">Generate Songs</button>
@@ -148,13 +90,11 @@
     <div id="results"></div>
   </div>
 
-  <footer>© 2025 S0NGR3ADYN0W — Powered by Loudly AI</footer>
-
   <script>
     const modeSelect = document.getElementById('mode');
     const customFields = document.getElementById('customFields');
-    const generateBtn = document.getElementById('generateBtn');
     const results = document.getElementById('results');
+    const generateBtn = document.getElementById('generateBtn');
 
     modeSelect.addEventListener('change', () => {
       customFields.style.display = modeSelect.value === 'custom' ? 'block' : 'none';
@@ -162,48 +102,40 @@
 
     generateBtn.addEventListener('click', async () => {
       const count = parseInt(document.getElementById('count').value);
-      if (count < 1 || count > 5) return alert("Please choose between 1 and 5 songs.");
+      if (count < 1 || count > 5) return alert("Please choose 1–5 songs.");
 
       const mode = modeSelect.value;
-      const body = { count, mode };
-
-      if (mode === 'custom') {
-        body.mood = document.getElementById('mood').value.trim();
-        body.genre = document.getElementById('genre').value.trim();
-        body.prompt = document.getElementById('prompt').value.trim();
-      }
+      const lyrics = mode === 'custom' ? document.getElementById('lyrics').value.trim() : "";
 
       generateBtn.disabled = true;
-      generateBtn.textContent = "Generating...";
-
-      results.innerHTML = `<p style='color:#888;'>AI is composing your songs 🎶 ...</p>`;
+      generateBtn.textContent = "Generating... 🎶";
+      results.innerHTML = "<p style='color:#888;'>Creating your songs...</p>";
 
       try {
-        const res = await fetch('/api/song', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
+        const res = await fetch("/api/song", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ count, mode, lyrics }),
         });
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Generation failed");
+        if (!res.ok) throw new Error(data.error);
 
-        results.innerHTML = '';
+        results.innerHTML = "";
         data.songs.forEach((song, i) => {
-          const card = document.createElement('div');
-          card.className = 'song-card';
+          const card = document.createElement("div");
+          card.className = "song-card";
           card.innerHTML = `
-            <strong>Song ${i+1}</strong><br>
+            <strong>Song ${i + 1}</strong><br>
             <audio controls src="${song.url}"></audio><br>
-            <a href="${song.url}" download="S0NGR3ADYN0W_${i+1}.mp3">
+            <a href="${song.url}" download="S0NGR3ADYN0W_${i + 1}.mp3">
               <button>Download</button>
             </a>
           `;
           results.appendChild(card);
         });
-
       } catch (err) {
-        results.innerHTML = `<p style='color:red;'>Error: ${err.message}</p>`;
+        results.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
       }
 
       generateBtn.disabled = false;
