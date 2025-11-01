@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S0NGR3ADYN0W — Self-Hosted AI Song Generator</title>
+<style>
+  :root {
+    --bg:#0b0b0b;--panel:#151515;--accent:#2ee6ff;--muted:#9aa0a6;
+  }
+  body{margin:0;background:var(--bg);color:#fff;font-family:Inter,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+  header{width:100%;padding:24px 0;text-align:center;background:#101010;box-shadow:0 6px 30px rgba(0,0,0,0.6)}
+  header h1{margin:0;font-size:1.8rem;color:var(--accent)}
+  .box{max-width:900px;width:90%;background:var(--panel);margin-top:32px;padding:24px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.5)}
+  label{display:block;margin-top:14px;color:var(--muted)}
+  select,input,textarea{width:100%;padding:12px;background:#111;border:1px solid #222;border-radius:8px;color:#eee;margin-top:6px}
+  button{margin-top:18px;padding:12px 18px;border:none;border-radius:10px;background:linear-gradient(90deg,var(--accent),#5bd5ff);font-weight:700;color:#042;cursor:pointer}
+  button:hover{opacity:0.9}
+  .song{background:#0e0e0e;padding:12px;border-radius:8px;margin-top:12px}
+  audio{width:100%;margin-top:8px}
+</style>
+</head>
+<body>
+<header><h1>🎶 S0NGR3ADYN0W — AI Song Generator</h1></header>
+<div class="box">
+  <p style="color:var(--muted)">Powered by Meta’s open-source MusicGen model — no login, no payments, local generation.</p>
+  <label>Mode</label>
+  <select id="mode">
+    <option value="auto">Auto (AI chooses)</option>
+    <option value="mood">Mood</option>
+    <option value="custom">Custom (lyrics)</option>
+  </select>
+
+  <div id="moodWrap" style="display:none">
+    <label>Mood (optional)</label>
+    <input id="mood" placeholder="e.g. chill, energetic, dark">
+  </div>
+
+  <div id="lyricsWrap" style="display:none">
+    <label>Lyrics (required for custom)</label>
+    <textarea id="lyrics" rows="6" placeholder="Write your lyrics..."></textarea>
+  </div>
+
+  <label>Number of songs (1-5)</label>
+  <input id="count" type="number" value="1" min="1" max="5">
+
+  <button id="generateBtn">Generate</button>
+
+  <div id="status" style="margin-top:10px;color:var(--muted)"></div>
+  <div id="results"></div>
+</div>
+
+<script>
+const modeEl=document.getElementById('mode');
+const moodWrap=document.getElementById('moodWrap');
+const lyricsWrap=document.getElementById('lyricsWrap');
+const statusEl=document.getElementById('status');
+const results=document.getElementById('results');
+modeEl.addEventListener('change',()=>{
+  moodWrap.style.display=modeEl.value==='mood'?'block':'none';
+  lyricsWrap.style.display=modeEl.value==='custom'?'block':'none';
+});
+document.getElementById('generateBtn').addEventListener('click',async()=>{
+  const mode=modeEl.value;
+  const mood=document.getElementById('mood').value;
+  const lyrics=document.getElementById('lyrics').value;
+  const count=Math.min(5,Math.max(1,parseInt(document.getElementById('count').value||1)));
+  if(mode==='custom'&&!lyrics.trim()){alert('Please add lyrics for Custom mode');return;}
+  statusEl.textContent='Generating... this can take 10-60s depending on GPU.';
+  results.innerHTML='';
+  const res=await fetch('/api/song',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode,mood,lyrics,count})});
+  const data=await res.json();
+  if(!res.ok){statusEl.textContent='Error: '+(data.error||res.statusText);return;}
+  statusEl.textContent='Done!';
+  data.songs.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='song';
+    d.innerHTML=`<div><strong>Song ${i+1}</strong></div>
+    <audio controls src="${s.url}"></audio>
+    <div><a href="${s.url}" download>⬇ Download</a></div>`;
+    results.appendChild(d);
+  });
+});
+</script>
+</body>
+</html>
